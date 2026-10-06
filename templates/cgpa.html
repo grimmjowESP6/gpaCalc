@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm p-4 col-md-8 mx-auto">
+    <h2 class="mb-3">CGPA Calculator</h2>
+    
+    {% if cgpa is not none %}
+        <!-- Result Display (Input table is hidden) -->
+        <div class="alert alert-success mt-2">
+            <h3 class="alert-heading fw-bold">Calculation Summary</h3>
+            <p class="fs-4 mb-1"><strong>CGPA:</strong> {{ "%.2f"|format(cgpa) }}</p>
+            <p class="fs-5 mb-0"><strong>Percentage:</strong> {{ "%.2f"|format(percentage) }}%</p>
+        </div>
+
+        <h5 class="mt-4 mb-3">Entered Semester Details</h5>
+        <ul class="list-group mb-4">
+            {% for item in entries %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>{{ item.name }}</strong>
+                <span>SGPA: <strong>{{ item.grade }}</strong> | Credits: <strong>{{ item.credit }}</strong></span>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <a href="/cgpa" class="btn btn-outline-primary">Calculate Again</a>
+
+    {% else %}
+        <!-- Step 1: Input count if not chosen yet -->
+        {% if not num_semesters %}
+        <form method="POST" class="mb-2">
+            <div class="mb-3">
+                <label for="num_semesters" class="form-label">Enter the number of semesters:</label>
+                <input type="number" class="form-control" id="num_semesters" name="num_semesters" required min="1">
+            </div>
+            <button type="submit" class="btn btn-primary">Next: Enter Details</button>
+        </form>
+        {% endif %}
+
+        <!-- Step 2: Input SGPA and credits -->
+        {% if num_semesters %}
+        <form method="POST">
+            <input type="hidden" name="num_semesters" value="{{ num_semesters }}">
+            {% if num_semesters == 8 %}
+            <div class="alert alert-info py-2">
+                <small>8 semesters detected: Fixed institutional credits have been pre-filled.</small>
+            </div>
+            {% endif %}
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Semester</th>
+                            <th>SGPA</th>
+                            <th>Total Credits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in range(1, num_semesters + 1) %}
+                        <tr>
+                            <td>Semester {{ i }}</td>
+                            <td><input type="number" step="any" class="form-control" name="sgpa_{{ i }}" required></td>
+                            <td>
+                                {% if num_semesters == 8 %}
+                                    <input type="number" step="any" class="form-control" name="credit_{{ i }}" value="{{ default_credits[i - 1] }}" readonly>
+                                {% else %}
+                                    <input type="number" step="any" class="form-control" name="credit_{{ i }}" required>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <button type="submit" name="calculate" class="btn btn-success">Calculate CGPA</button>
+            <a href="/cgpa" class="btn btn-outline-secondary ms-2">Reset</a>
+        </form>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
